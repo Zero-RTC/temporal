@@ -2,7 +2,7 @@
 session_start();
 
 // Directorio destino: curriculums/
-$directorioDestino = __DIR__ . "/curriculums/";
+$directorioDestino = "/var/www/webserver/curriculums/";
 
 // Crear el directorio si no existe todavía
 if (!is_dir($directorioDestino)) {
@@ -30,7 +30,6 @@ if (isset($_POST["enviarCandidatura"])) {
 
     } else {
         // Se ha recibido el archivo correctamente
-        // NOTA: No se valida extensión, tipo MIME ni contenido del archivo
         $nombreArchivo = $_FILES["curriculum"]["name"];
         $rutaDestino   = $directorioDestino . $nombreArchivo;
 
