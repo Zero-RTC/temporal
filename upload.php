@@ -1,37 +1,42 @@
 <?php
 session_start();
 
-// Si viene de AJAX (fetch), responder solo texto y salir
-$esAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) || 
-          (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'text/html') === false);
-
 $directorioDestino = __DIR__ . "/curriculums/";
 
 if (!is_dir($directorioDestino)) {
     mkdir($directorioDestino, 0755, true);
 }
 
-if (isset($_POST["enviarCandidatura"])) {
-    $nombreFormulario = $_POST["nombre"];
+if (isset($_POST["nombre"]) && !empty($_POST["nombre"])) {
+
+    $nombreFormulario   = $_POST["nombre"];
+    $emailFormulario    = $_POST["email"];
+    $posicionFormulario = $_POST["posicion"];
 
     if ($_FILES["curriculum"]["error"] == UPLOAD_ERR_NO_FILE) {
         echo "Error: no has adjuntado ningún archivo.";
+
     } elseif ($_FILES["curriculum"]["error"] != UPLOAD_ERR_OK) {
-        echo "Error durante la subida (código: ".$_FILES["curriculum"]["error"].")";
+        echo "Error durante la subida (código: " . $_FILES["curriculum"]["error"] . ").";
+
     } else {
         $nombreArchivo = $_FILES["curriculum"]["name"];
         $rutaDestino   = $directorioDestino . $nombreArchivo;
 
         if (move_uploaded_file($_FILES["curriculum"]["tmp_name"], $rutaDestino)) {
+            $_SESSION["ultimoArchivo"]     = $nombreArchivo;
+            $_SESSION["ultimoSolicitante"] = $nombreFormulario;
             echo "✓ Candidatura de $nombreFormulario recibida. Archivo: $nombreArchivo";
         } else {
-            echo "Error: no se pudo guardar el archivo. Comprueba permisos.";
+            echo "Error: no se pudo guardar el archivo. Comprueba los permisos del directorio.";
         }
     }
+
 } else {
     echo "Error: formulario no enviado correctamente.";
 }
-exit; // No renderizar nada más
+
+exit;
 ?>
 
 <!DOCTYPE html>
