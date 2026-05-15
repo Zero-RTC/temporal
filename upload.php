@@ -1,59 +1,37 @@
 <?php
 session_start();
 
-// Directorio destino: curriculums/
-$directorioDestino = "/var/www/webserver/curriculums/";
+// Si viene de AJAX (fetch), responder solo texto y salir
+$esAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) || 
+          (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'text/html') === false);
 
-// Crear el directorio si no existe todavía
+$directorioDestino = __DIR__ . "/curriculums/";
+
 if (!is_dir($directorioDestino)) {
     mkdir($directorioDestino, 0755, true);
 }
 
-// Variables que se mostrarán en la página
-$mensajeResultado = "";
-$nombreArchivo = "";
-
-// 4.- Estructura del programa -> obtener un dato para cada variable
 if (isset($_POST["enviarCandidatura"])) {
-    // El usuario ha pulsado el botón de enviar
-    $nombreFormulario   = $_POST["nombre"];
-    $emailFormulario    = $_POST["email"];
-    $posicionFormulario = $_POST["posicion"];
+    $nombreFormulario = $_POST["nombre"];
 
     if ($_FILES["curriculum"]["error"] == UPLOAD_ERR_NO_FILE) {
-        // No se ha adjuntado ningún archivo
-        $mensajeResultado = "<p>Error: no has adjuntado ningún archivo.</p>";
-
+        echo "Error: no has adjuntado ningún archivo.";
     } elseif ($_FILES["curriculum"]["error"] != UPLOAD_ERR_OK) {
-        // Error interno de PHP durante la subida
-        $mensajeResultado = "<p>Error durante la subida (código: ".$_FILES["curriculum"]["error"].").</p>";
-
+        echo "Error durante la subida (código: ".$_FILES["curriculum"]["error"].")";
     } else {
-        // Se ha recibido el archivo correctamente
         $nombreArchivo = $_FILES["curriculum"]["name"];
         $rutaDestino   = $directorioDestino . $nombreArchivo;
 
         if (move_uploaded_file($_FILES["curriculum"]["tmp_name"], $rutaDestino)) {
-            // Guardamos el nombre del archivo en sesión para mostrarlo
-            $_SESSION["ultimoArchivo"]      = $nombreArchivo;
-            $_SESSION["ultimoSolicitante"]  = $nombreFormulario;
-            $mensajeResultado = "<p>Candidatura de $nombreFormulario recibida correctamente.</p>"
-                              . "<p>Archivo guardado: curriculums/$nombreArchivo</p>";
+            echo "✓ Candidatura de $nombreFormulario recibida. Archivo: $nombreArchivo";
         } else {
-            $mensajeResultado = "<p>Error: no se pudo guardar el archivo. Comprueba los permisos de /curriculums/.</p>";
+            echo "Error: no se pudo guardar el archivo. Comprueba permisos.";
         }
     }
-
-} elseif (isset($_SESSION["ultimoArchivo"])) {
-    // La página se ha recargado: recuperar datos de la sesión
-    $nombreArchivo    = $_SESSION["ultimoArchivo"];
-    $mensajeResultado = "<p>Última candidatura registrada: ".$_SESSION["ultimoSolicitante"]."</p>"
-                      . "<p>Archivo: curriculums/$nombreArchivo</p>";
-
 } else {
-    // Primera visita, sin datos previos
-    $mensajeResultado = "";
+    echo "Error: formulario no enviado correctamente.";
 }
+exit; // No renderizar nada más
 ?>
 
 <!DOCTYPE html>
